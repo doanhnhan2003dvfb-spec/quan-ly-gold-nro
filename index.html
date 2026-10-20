@@ -87,7 +87,7 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Server</label>
                     <select id="server" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500">
                         <script>
-                            for(let i=1; i<=12; i++) document.write(`<option value="SV ${i}">Server ${i}</option>`);
+                            for(let i=1; i<=15; i++) document.write(`<option value="SV ${i}">Server ${i}</option>`);
                         </script>
                     </select>
                 </div>
@@ -163,7 +163,7 @@
     <!-- FIREBASE SDK & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addTimestamp, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Cấu hình Firebase của bạn[cite: 9]
         const firebaseConfig = {
