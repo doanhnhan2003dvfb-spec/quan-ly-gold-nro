@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Real-time)</title>
+    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Auth & Cloud)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -23,8 +23,59 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
 
-    <!-- HEADER -->
-    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-container" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="inline-flex bg-amber-500/10 text-amber-500 p-3 rounded-2xl border border-amber-500/20 mb-3">
+                    <i class="fa-solid fa-coins text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">NRO GOLD MANAGER</h2>
+                <p class="text-xs text-slate-400 mt-1">Đăng nhập tài khoản nhân viên để tiếp tục</p>
+            </div>
+
+            <!-- TAB ĐĂNG NHẬP / ĐĂNG KÝ -->
+            <div class="flex border-b border-slate-800 mb-5">
+                <button id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2 text-sm font-semibold border-b-2 border-amber-500 text-amber-400">Đăng Nhập</button>
+                <button id="tab-register-btn" onclick="switchTab('register')" class="flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200">Đăng Ký Mới</button>
+            </div>
+
+            <!-- FORM ĐĂNG NHẬP -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Tài Khoản</label>
+                    <input type="email" id="login-email" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500" placeholder="nhanvien@nro.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Mật Khẩu</label>
+                    <input type="password" id="login-password" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500" placeholder="••••••••">
+                </div>
+                <button type="submit" id="btn-login-submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
+                </button>
+            </form>
+
+            <!-- FORM ĐĂNG KÝ -->
+            <form id="register-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Nhân Viên Mới</label>
+                    <input type="email" id="reg-email" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500" placeholder="nhanvien2@nro.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Mật Khẩu Mới (ít nhất 6 ký tự)</label>
+                    <input type="password" id="reg-password" minlength="6" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500" placeholder="••••••••">
+                </div>
+                <button type="submit" id="btn-reg-submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Tạo Tài Khoản
+                </button>
+            </form>
+            
+            <p id="auth-error-msg" class="text-xs text-rose-400 text-center mt-3 hidden"></p>
+        </div>
+    </div>
+
+    <!-- HEADER TRANG CHÍNH -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-amber-500/10 text-amber-500 p-2.5 rounded-xl border border-amber-500/20">
@@ -32,13 +83,17 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">NRO GOLD MANAGEMENT</h1>
-                    <p class="text-xs text-slate-400">Hệ thống quản lý giao dịch mua bán vàng/ngọc online (Đồng bộ Real-time)</p>
+                    <p class="text-xs text-slate-400">Hệ thống quản lý giao dịch mua bán vàng/ngọc online (Real-time)</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
-                <span id="sync-status" class="text-xs px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Đã kết nối Cloud
-                </span>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-slate-400">Đang trực ca:</p>
+                    <p id="user-display-email" class="text-xs font-bold text-amber-400">Loading...</p>
+                </div>
+                <button id="btn-logout" class="px-3 py-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-xs hover:bg-rose-500/20 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                </button>
             </div>
         </div>
     </header>
@@ -115,14 +170,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-amber-400 mb-1"><i class="fa-solid fa-qrcode"></i> Ảnh QR Khách (Nếu bán vàng)</label>
-                    <input type="file" id="qr_code_file" accept="image/*" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-amber-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-amber-500/20 file:text-amber-400">
+                    <label class="block text-xs font-semibold text-amber-400 mb-1"><i class="fa-solid fa-qrcode"></i> Up Ảnh QR Khách Bán</label>
+                    <input type="file" id="qr_code_file" accept="image/*" class="w-full bg-slate-950 border border-amber-500/40 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-amber-500 file:text-slate-950 file:font-semibold">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Ghi Chú</label>
-                    <input type="text" id="ghi_chu" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: STK / Tên Ngân Hàng">
+                    <input type="text" id="ghi_chu" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: STK / Ngân Hàng Khách">
                 </div>
-                <div class="sm:col-span-2 lg:col-span-4 flex items-end">
+                <div class="sm:col-span-2 lg:col-span-4 flex items-end mt-2">
                     <button type="submit" id="btn-submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus"></i> Thêm Lệnh Giao Dịch
                     </button>
@@ -136,7 +191,7 @@
                 <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-list text-amber-500"></i> Lịch Sử Giao Dịch Trực Tuyến
                 </h2>
-                <span class="text-xs text-slate-400">Dữ liệu cập nhật tự động cho mọi người</span>
+                <span class="text-xs text-slate-400">Dữ liệu cập nhật tự động Real-time</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -149,8 +204,8 @@
                             <th class="p-3 text-right">Vàng (Tr)</th>
                             <th class="p-3 text-right">VNĐ</th>
                             <th class="p-3 text-center">Trạng thái</th>
-                            <th class="p-3 text-center">Mã QR Khách</th>
-                            <th class="p-3">Ghi chú</th>
+                            <th class="p-3 text-center">QR Khách</th>
+                            <th class="p-3">Người Tạo</th>
                             <th class="p-3 text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -179,9 +234,10 @@
         </div>
     </div>
 
-    <!-- FIREBASE SDK & LOGIC -->
+    <!-- FIREBASE AUTH & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Cấu hình Firebase[cite: 9]
@@ -195,10 +251,80 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
         const colRef = collection(db, "giao_dich");
 
-        // Đọc ảnh và chuyển sang Base64 để lưu vào Database
+        let currentUser = null;
+
+        // Chuyển Tab Đăng nhập / Đăng ký
+        window.switchTab = function(tab) {
+            document.getElementById('auth-error-msg').classList.add('hidden');
+            if (tab === 'login') {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('tab-login-btn').className = "flex-1 py-2 text-sm font-semibold border-b-2 border-amber-500 text-amber-400";
+                document.getElementById('tab-register-btn').className = "flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+            } else {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+                document.getElementById('tab-register-btn').className = "flex-1 py-2 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400";
+                document.getElementById('tab-login-btn').className = "flex-1 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+            }
+        }
+
+        // Xử lý Đăng nhập
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const errMsg = document.getElementById('auth-error-msg');
+            errMsg.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                errMsg.innerText = "Lỗi đăng nhập: " + err.message;
+                errMsg.classList.remove('hidden');
+            }
+        });
+
+        // Xử lý Đăng ký
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            const errMsg = document.getElementById('auth-error-msg');
+            errMsg.classList.add('hidden');
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                alert("Đã tạo tài khoản thành công!");
+            } catch (err) {
+                errMsg.innerText = "Lỗi đăng ký: " + err.message;
+                errMsg.classList.remove('hidden');
+            }
+        });
+
+        // Đăng xuất
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Lắng nghe trạng thái Đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('user-display-email').innerText = user.email;
+                loadRealtimeData();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-container').classList.remove('hidden');
+            }
+        });
+
+        // Đọc ảnh dạng Base64
         function getBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -208,12 +334,12 @@
             });
         }
 
-        // Xử lý Thêm Giao Dịch
+        // Thêm Giao Dịch
         document.getElementById('transaction-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = document.getElementById('btn-submit');
             btnSubmit.disabled = true;
-            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Đang lưu dữ liệu...`;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Đang tải dữ liệu...`;
 
             const now = new Date();
             const timeString = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -223,9 +349,7 @@
             if (qrFileInput.files && qrFileInput.files[0]) {
                 try {
                     qrBase64 = await getBase64(qrFileInput.files[0]);
-                } catch (err) {
-                    console.error("Lỗi đọc file ảnh QR", err);
-                }
+                } catch (err) { console.error(err); }
             }
 
             const newTx = {
@@ -238,6 +362,7 @@
                 trang_thai: document.getElementById('trang_thai').value,
                 ghi_chu: document.getElementById('ghi_chu').value.trim(),
                 qr_code: qrBase64,
+                created_by: currentUser ? currentUser.email.split('@')[0] : 'Unknown',
                 timestamp: Date.now()
             };
 
@@ -245,7 +370,7 @@
                 await addDoc(colRef, newTx);
                 document.getElementById('transaction-form').reset();
             } catch (err) {
-                alert("Lỗi khi lưu dữ liệu lên cloud: " + err.message);
+                alert("Lỗi khi lưu dữ liệu: " + err.message);
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = `<i class="fa-solid fa-plus"></i> Thêm Lệnh Giao Dịch`;
@@ -257,84 +382,84 @@
             if(confirm("Bạn có chắc chắn muốn xóa giao dịch này?")) {
                 try {
                     await deleteDoc(doc(db, "giao_dich", id));
-                } catch (err) {
-                    alert("Lỗi khi xóa: " + err.message);
-                }
+                } catch (err) { alert("Lỗi khi xóa: " + err.message); }
             }
         }
 
-        // Mở Modal xem QR
+        // Modal QR
         window.openQrModal = function(url, nvInfo) {
             document.getElementById('qr-modal-img').src = url;
             document.getElementById('qr-modal-info').innerText = "Tài khoản: " + nvInfo;
             document.getElementById('qr-modal').classList.remove('hidden');
         }
 
-        // Đóng Modal xem QR
         window.closeQrModal = function() {
             document.getElementById('qr-modal').classList.add('hidden');
         }
 
-        // Lắng nghe dữ liệu Real-time từ Firebase Firestore
-        const q = query(colRef, orderBy("timestamp", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const tbody = document.getElementById('transaction-table-body');
-            tbody.innerHTML = "";
+        // Tải dữ liệu Real-time
+        let unsubscribe = null;
+        function loadRealtimeData() {
+            if (unsubscribe) unsubscribe();
+            const q = query(colRef, orderBy("timestamp", "desc"));
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('transaction-table-body');
+                tbody.innerHTML = "";
 
-            let totalVnd = 0;
-            let totalGold = 0;
-            let totalCount = snapshot.size;
+                let totalVnd = 0;
+                let totalGold = 0;
+                let totalCount = snapshot.size;
 
-            if (totalCount === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
-            }
-
-            snapshot.forEach((docSnap) => {
-                const tx = docSnap.data();
-                const id = docSnap.id;
-
-                if (tx.trang_thai === "Thành Công") {
-                    totalVnd += Number(tx.so_tien_vnd || 0);
-                    totalGold += Number(tx.so_luong_vang || 0);
+                if (totalCount === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
                 }
 
-                let badgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
-                if(tx.trang_thai === "Thành Công") badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                if(tx.trang_thai === "Đã Hủy") badgeColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                snapshot.forEach((docSnap) => {
+                    const tx = docSnap.data();
+                    const id = docSnap.id;
 
-                let qrBtn = `<span class="text-slate-600 text-xs">-</span>`;
-                if (tx.qr_code) {
-                    qrBtn = `<button onclick="openQrModal('${tx.qr_code}', '${tx.ten_nv}')" class="px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs hover:bg-amber-500/30 transition flex items-center justify-center gap-1 mx-auto">
-                        <i class="fa-solid fa-qrcode"></i> Xem QR
-                    </button>`;
-                }
+                    if (tx.trang_thai === "Thành Công") {
+                        totalVnd += Number(tx.so_tien_vnd || 0);
+                        totalGold += Number(tx.so_luong_vang || 0);
+                    }
 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-900/50 transition";
-                tr.innerHTML = `
-                    <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${tx.ngay_gio}</td>
-                    <td class="p-3 font-semibold text-slate-200">${tx.ten_nv}</td>
-                    <td class="p-3 text-slate-300 whitespace-nowrap">${tx.server}</td>
-                    <td class="p-3 text-slate-300">${tx.loai_gd}</td>
-                    <td class="p-3 text-right font-medium text-amber-400">${Number(tx.so_luong_vang).toLocaleString()} Tr</td>
-                    <td class="p-3 text-right font-medium text-emerald-400">${Number(tx.so_tien_vnd).toLocaleString()} đ</td>
-                    <td class="p-3 text-center"><span class="px-2.5 py-1 text-xs border rounded-full ${badgeColor}">${tx.trang_thai}</span></td>
-                    <td class="p-3 text-center">${qrBtn}</td>
-                    <td class="p-3 text-slate-400 text-xs">${tx.ghi_chu || '-'}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteTx('${id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded transition" title="Xóa">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                    let badgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                    if(tx.trang_thai === "Thành Công") badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                    if(tx.trang_thai === "Đã Hủy") badgeColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+                    let qrBtn = `<span class="text-slate-600 text-xs">-</span>`;
+                    if (tx.qr_code) {
+                        qrBtn = `<button onclick="openQrModal('${tx.qr_code}', '${tx.ten_nv}')" class="px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs hover:bg-amber-500/30 transition flex items-center justify-center gap-1 mx-auto">
+                            <i class="fa-solid fa-qrcode"></i> Xem QR
+                        </button>`;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-900/50 transition";
+                    tr.innerHTML = `
+                        <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${tx.ngay_gio}</td>
+                        <td class="p-3 font-semibold text-slate-200">${tx.ten_nv}</td>
+                        <td class="p-3 text-slate-300 whitespace-nowrap">${tx.server}</td>
+                        <td class="p-3 text-slate-300">${tx.loai_gd}</td>
+                        <td class="p-3 text-right font-medium text-amber-400">${Number(tx.so_luong_vang).toLocaleString()} Tr</td>
+                        <td class="p-3 text-right font-medium text-emerald-400">${Number(tx.so_tien_vnd).toLocaleString()} đ</td>
+                        <td class="p-3 text-center"><span class="px-2.5 py-1 text-xs border rounded-full ${badgeColor}">${tx.trang_thai}</span></td>
+                        <td class="p-3 text-center">${qrBtn}</td>
+                        <td class="p-3 text-xs text-slate-400"><i class="fa-solid fa-user-gear text-amber-500/70 mr-1"></i>${tx.created_by || '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteTx('${id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded transition" title="Xóa">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('stat-total-vnd').innerText = totalVnd.toLocaleString() + ' đ';
+                document.getElementById('stat-total-gold').innerText = totalGold.toLocaleString() + ' Tr';
+                document.getElementById('stat-total-count').innerText = totalCount;
             });
-
-            // Cập nhật thống kê giao diện
-            document.getElementById('stat-total-vnd').innerText = totalVnd.toLocaleString() + ' đ';
-            document.getElementById('stat-total-gold').innerText = totalGold.toLocaleString() + ' Tr';
-            document.getElementById('stat-total-count').innerText = totalCount;
-        });
+        }
     </script>
 </body>
 </html>
