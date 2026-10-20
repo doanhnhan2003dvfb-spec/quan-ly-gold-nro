@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Auth & Cloud)</title>
+    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Full Auth & Cloud)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -31,7 +31,7 @@
                     <i class="fa-solid fa-coins text-3xl"></i>
                 </div>
                 <h2 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-200 bg-clip-text text-transparent">NRO GOLD MANAGER</h2>
-                <p class="text-xs text-slate-400 mt-1">Đăng nhập tài khoản nhân viên để tiếp tục</p>
+                <p class="text-xs text-slate-400 mt-1">Hệ thống quản lý mua bán vàng/ngọc nội bộ</p>
             </div>
 
             <!-- TAB ĐĂNG NHẬP / ĐĂNG KÝ -->
@@ -43,7 +43,7 @@
             <!-- FORM ĐĂNG NHẬP -->
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Tài Khoản</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Nhân Viên</label>
                     <input type="email" id="login-email" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-500" placeholder="nhanvien@nro.com">
                 </div>
                 <div>
@@ -70,7 +70,7 @@
                 </button>
             </form>
             
-            <p id="auth-error-msg" class="text-xs text-rose-400 text-center mt-3 hidden"></p>
+            <p id="auth-error-msg" class="text-xs text-rose-400 text-center mt-3 hidden bg-rose-500/10 p-2 rounded border border-rose-500/20"></p>
         </div>
     </div>
 
@@ -240,9 +240,9 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase[cite: 9]
+        // Cấu hình Firebase chính xác 100%[cite: 7]
         const firebaseConfig = {
-            apiKey: "AIzaSyCFFy8xOMVIGB72R577nxmp3s0ucuhwgMU",
+            apiKey: "AIzaSyCfFY8xOMVIGB72R577nxmp3s0ucuhwgMU",
             authDomain: "quan-ly-nr.firebaseapp.com",
             projectId: "quan-ly-nr",
             storageBucket: "quan-ly-nr.firebasestorage.app",
