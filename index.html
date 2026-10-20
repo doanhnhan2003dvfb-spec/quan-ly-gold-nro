@@ -20,8 +20,6 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
 
@@ -76,7 +74,7 @@
         <!-- FORM NHẬP GIAO DỊCH -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-circle-plus text-amber-500"></i> Tạo Giao Dịch Mới (3 Người Dùng Chung)
+                <i class="fa-solid fa-circle-plus text-amber-500"></i> Tạo Giao Dịch Mới
             </h2>
             <form id="transaction-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
@@ -116,12 +114,16 @@
                         <option value="Đã Hủy">Đã Hủy</option>
                     </select>
                 </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Ghi Chú</label>
-                    <input type="text" id="ghi_chu" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: Đã chuyển khoản qua MBBank">
+                <div>
+                    <label class="block text-xs font-medium text-amber-400 mb-1"><i class="fa-solid fa-qrcode"></i> Ảnh QR Khách (Nếu bán vàng)</label>
+                    <input type="file" id="qr_code_file" accept="image/*" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-amber-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-amber-500/20 file:text-amber-400">
                 </div>
-                <div class="sm:col-span-2 flex items-end">
-                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Ghi Chú</label>
+                    <input type="text" id="ghi_chu" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: STK / Tên Ngân Hàng">
+                </div>
+                <div class="sm:col-span-2 lg:col-span-4 flex items-end">
+                    <button type="submit" id="btn-submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus"></i> Thêm Lệnh Giao Dịch
                     </button>
                 </div>
@@ -147,6 +149,7 @@
                             <th class="p-3 text-right">Vàng (Tr)</th>
                             <th class="p-3 text-right">VNĐ</th>
                             <th class="p-3 text-center">Trạng thái</th>
+                            <th class="p-3 text-center">Mã QR Khách</th>
                             <th class="p-3">Ghi chú</th>
                             <th class="p-3 text-center">Thao tác</th>
                         </tr>
@@ -160,12 +163,28 @@
 
     </main>
 
+    <!-- MODAL HIỂN THỊ ẢNH QR -->
+    <div id="qr-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 flex flex-col items-center relative">
+            <button onclick="closeQrModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-qrcode"></i> Mã QR Chuyển Tiền Khách
+            </h3>
+            <div class="bg-white p-2 rounded-xl shadow-lg mb-3">
+                <img id="qr-modal-img" src="" alt="QR Khách" class="max-h-72 object-contain rounded-lg">
+            </div>
+            <p id="qr-modal-info" class="text-xs text-slate-400 text-center"></p>
+        </div>
+    </div>
+
     <!-- FIREBASE SDK & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase của bạn[cite: 9]
+        // Cấu hình Firebase[cite: 9]
         const firebaseConfig = {
             apiKey: "AIzaSyCFFy8xOMVIGB72R577nxmp3s0ucuhwgMU",
             authDomain: "quan-ly-nr.firebaseapp.com",
@@ -179,12 +198,35 @@
         const db = getFirestore(app);
         const colRef = collection(db, "giao_dich");
 
+        // Đọc ảnh và chuyển sang Base64 để lưu vào Database
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
         // Xử lý Thêm Giao Dịch
         document.getElementById('transaction-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Đang lưu dữ liệu...`;
+
             const now = new Date();
             const timeString = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            let qrBase64 = "";
+            const qrFileInput = document.getElementById('qr_code_file');
+            if (qrFileInput.files && qrFileInput.files[0]) {
+                try {
+                    qrBase64 = await getBase64(qrFileInput.files[0]);
+                } catch (err) {
+                    console.error("Lỗi đọc file ảnh QR", err);
+                }
+            }
 
             const newTx = {
                 ngay_gio: timeString,
@@ -195,6 +237,7 @@
                 so_tien_vnd: Number(document.getElementById('so_tien_vnd').value),
                 trang_thai: document.getElementById('trang_thai').value,
                 ghi_chu: document.getElementById('ghi_chu').value.trim(),
+                qr_code: qrBase64,
                 timestamp: Date.now()
             };
 
@@ -203,6 +246,9 @@
                 document.getElementById('transaction-form').reset();
             } catch (err) {
                 alert("Lỗi khi lưu dữ liệu lên cloud: " + err.message);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-plus"></i> Thêm Lệnh Giao Dịch`;
             }
         });
 
@@ -217,6 +263,18 @@
             }
         }
 
+        // Mở Modal xem QR
+        window.openQrModal = function(url, nvInfo) {
+            document.getElementById('qr-modal-img').src = url;
+            document.getElementById('qr-modal-info').innerText = "Tài khoản: " + nvInfo;
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        // Đóng Modal xem QR
+        window.closeQrModal = function() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+
         // Lắng nghe dữ liệu Real-time từ Firebase Firestore
         const q = query(colRef, orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
@@ -228,7 +286,7 @@
             let totalCount = snapshot.size;
 
             if (totalCount === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
             }
 
             snapshot.forEach((docSnap) => {
@@ -244,6 +302,13 @@
                 if(tx.trang_thai === "Thành Công") badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
                 if(tx.trang_thai === "Đã Hủy") badgeColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
 
+                let qrBtn = `<span class="text-slate-600 text-xs">-</span>`;
+                if (tx.qr_code) {
+                    qrBtn = `<button onclick="openQrModal('${tx.qr_code}', '${tx.ten_nv}')" class="px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs hover:bg-amber-500/30 transition flex items-center justify-center gap-1 mx-auto">
+                        <i class="fa-solid fa-qrcode"></i> Xem QR
+                    </button>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-900/50 transition";
                 tr.innerHTML = `
@@ -254,6 +319,7 @@
                     <td class="p-3 text-right font-medium text-amber-400">${Number(tx.so_luong_vang).toLocaleString()} Tr</td>
                     <td class="p-3 text-right font-medium text-emerald-400">${Number(tx.so_tien_vnd).toLocaleString()} đ</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 text-xs border rounded-full ${badgeColor}">${tx.trang_thai}</span></td>
+                    <td class="p-3 text-center">${qrBtn}</td>
                     <td class="p-3 text-slate-400 text-xs">${tx.ghi_chu || '-'}</td>
                     <td class="p-3 text-center">
                         <button onclick="deleteTx('${id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded transition" title="Xóa">
