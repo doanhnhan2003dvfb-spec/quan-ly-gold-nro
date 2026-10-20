@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Full Auth & Cloud)</title>
+    <title>Phần Mềm Quản Lý Mua Bán Vàng Ngọc Rồng Online (Auto Rate)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -129,7 +129,7 @@
         <!-- FORM NHẬP GIAO DỊCH -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-circle-plus text-amber-500"></i> Tạo Giao Dịch Mới
+                <i class="fa-solid fa-circle-plus text-amber-500"></i> Tạo Giao Dịch Mới (Tự Động Tính Rate)
             </h2>
             <form id="transaction-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
@@ -158,8 +158,13 @@
                     <input type="number" id="so_luong_vang" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: 500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Số tiền VNĐ *</label>
-                    <input type="number" id="so_tien_vnd" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: 150000">
+                    <label class="block text-xs font-semibold text-amber-400 mb-1">Rate (VNĐ / 1 Tr Vàng) *</label>
+                    <input type="number" id="rate_vang" step="100" required class="w-full bg-slate-950 border border-amber-500/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: 2500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-400 mb-1">Thành Tiền VNĐ (Tự động)</label>
+                    <input type="text" id="so_tien_vnd_display" readonly class="w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-3 py-2 text-sm text-emerald-400 font-bold" placeholder="0 đ">
+                    <input type="hidden" id="so_tien_vnd" value="0">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Trạng Thái</label>
@@ -173,11 +178,11 @@
                     <label class="block text-xs font-semibold text-amber-400 mb-1"><i class="fa-solid fa-qrcode"></i> Up Ảnh QR Khách Bán</label>
                     <input type="file" id="qr_code_file" accept="image/*" class="w-full bg-slate-950 border border-amber-500/40 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-amber-500 file:text-slate-950 file:font-semibold">
                 </div>
-                <div>
+                <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Ghi Chú</label>
                     <input type="text" id="ghi_chu" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500" placeholder="VD: STK / Ngân Hàng Khách">
                 </div>
-                <div class="sm:col-span-2 lg:col-span-4 flex items-end mt-2">
+                <div class="sm:col-span-2 flex items-end">
                     <button type="submit" id="btn-submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus"></i> Thêm Lệnh Giao Dịch
                     </button>
@@ -202,6 +207,7 @@
                             <th class="p-3">Server</th>
                             <th class="p-3">Loại GD</th>
                             <th class="p-3 text-right">Vàng (Tr)</th>
+                            <th class="p-3 text-right">Rate</th>
                             <th class="p-3 text-right">VNĐ</th>
                             <th class="p-3 text-center">Trạng thái</th>
                             <th class="p-3 text-center">QR Khách</th>
@@ -240,7 +246,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase chính xác 100%[cite: 7]
+        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCfFY8xOMVIGB72R577nxmp3s0ucuhwgMU",
             authDomain: "quan-ly-nr.firebaseapp.com",
@@ -256,6 +262,19 @@
         const colRef = collection(db, "giao_dich");
 
         let currentUser = null;
+
+        // Tự động tính tiền khi nhập Số lượng vàng hoặc Rate
+        function calculateTotal() {
+            const gold = Number(document.getElementById('so_luong_vang').value) || 0;
+            const rate = Number(document.getElementById('rate_vang').value) || 0;
+            const totalVnd = gold * rate;
+            
+            document.getElementById('so_tien_vnd').value = totalVnd;
+            document.getElementById('so_tien_vnd_display').value = totalVnd.toLocaleString() + ' đ';
+        }
+
+        document.getElementById('so_luong_vang').addEventListener('input', calculateTotal);
+        document.getElementById('rate_vang').addEventListener('input', calculateTotal);
 
         // Chuyển Tab Đăng nhập / Đăng ký
         window.switchTab = function(tab) {
@@ -273,7 +292,7 @@
             }
         }
 
-        // Xử lý Đăng nhập
+        // Đăng nhập
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -289,7 +308,7 @@
             }
         });
 
-        // Xử lý Đăng ký
+        // Đăng ký
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('reg-email').value;
@@ -306,12 +325,8 @@
             }
         });
 
-        // Đăng xuất
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            signOut(auth);
-        });
+        document.getElementById('btn-logout').addEventListener('click', () => { signOut(auth); });
 
-        // Lắng nghe trạng thái Đăng nhập
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -324,7 +339,6 @@
             }
         });
 
-        // Đọc ảnh dạng Base64
         function getBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -347,9 +361,7 @@
             let qrBase64 = "";
             const qrFileInput = document.getElementById('qr_code_file');
             if (qrFileInput.files && qrFileInput.files[0]) {
-                try {
-                    qrBase64 = await getBase64(qrFileInput.files[0]);
-                } catch (err) { console.error(err); }
+                try { qrBase64 = await getBase64(qrFileInput.files[0]); } catch (err) { console.error(err); }
             }
 
             const newTx = {
@@ -358,6 +370,7 @@
                 server: document.getElementById('server').value,
                 loai_gd: document.getElementById('loai_gd').value,
                 so_luong_vang: Number(document.getElementById('so_luong_vang').value),
+                rate_vang: Number(document.getElementById('rate_vang').value),
                 so_tien_vnd: Number(document.getElementById('so_tien_vnd').value),
                 trang_thai: document.getElementById('trang_thai').value,
                 ghi_chu: document.getElementById('ghi_chu').value.trim(),
@@ -369,6 +382,7 @@
             try {
                 await addDoc(colRef, newTx);
                 document.getElementById('transaction-form').reset();
+                document.getElementById('so_tien_vnd_display').value = '0 đ';
             } catch (err) {
                 alert("Lỗi khi lưu dữ liệu: " + err.message);
             } finally {
@@ -377,27 +391,20 @@
             }
         });
 
-        // Xóa giao dịch
         window.deleteTx = async function(id) {
             if(confirm("Bạn có chắc chắn muốn xóa giao dịch này?")) {
-                try {
-                    await deleteDoc(doc(db, "giao_dich", id));
-                } catch (err) { alert("Lỗi khi xóa: " + err.message); }
+                try { await deleteDoc(doc(db, "giao_dich", id)); } catch (err) { alert("Lỗi khi xóa: " + err.message); }
             }
         }
 
-        // Modal QR
         window.openQrModal = function(url, nvInfo) {
             document.getElementById('qr-modal-img').src = url;
             document.getElementById('qr-modal-info').innerText = "Tài khoản: " + nvInfo;
             document.getElementById('qr-modal').classList.remove('hidden');
         }
 
-        window.closeQrModal = function() {
-            document.getElementById('qr-modal').classList.add('hidden');
-        }
+        window.closeQrModal = function() { document.getElementById('qr-modal').classList.add('hidden'); }
 
-        // Tải dữ liệu Real-time
         let unsubscribe = null;
         function loadRealtimeData() {
             if (unsubscribe) unsubscribe();
@@ -411,7 +418,7 @@
                 let totalCount = snapshot.size;
 
                 if (totalCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-slate-500">Chưa có giao dịch nào được tạo.</td></tr>`;
                 }
 
                 snapshot.forEach((docSnap) => {
@@ -442,6 +449,7 @@
                         <td class="p-3 text-slate-300 whitespace-nowrap">${tx.server}</td>
                         <td class="p-3 text-slate-300">${tx.loai_gd}</td>
                         <td class="p-3 text-right font-medium text-amber-400">${Number(tx.so_luong_vang).toLocaleString()} Tr</td>
+                        <td class="p-3 text-right font-medium text-sky-400">${Number(tx.rate_vang || 0).toLocaleString()} đ</td>
                         <td class="p-3 text-right font-medium text-emerald-400">${Number(tx.so_tien_vnd).toLocaleString()} đ</td>
                         <td class="p-3 text-center"><span class="px-2.5 py-1 text-xs border rounded-full ${badgeColor}">${tx.trang_thai}</span></td>
                         <td class="p-3 text-center">${qrBtn}</td>
